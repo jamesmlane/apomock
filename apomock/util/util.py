@@ -156,10 +156,10 @@ def Z2FEH(z,zsolar=None):
     '''
     # if parsec:
     #     if zsolar is None: zsolar= 0.0152
-    #     return numpy.log10(z/(1.-0.2485-2.78*z))-math.log10(zsolar/(1.-0.2485-2.78*zsolar))
+    #     return np.log10(z/(1.-0.2485-2.78*z))-math.log10(zsolar/(1.-0.2485-2.78*zsolar))
     # else:
     if zsolar is None: zsolar= 0.0196
-    return numpy.log10(z)-np.log10(zsolar)
+    return np.log10(z)-np.log10(zsolar)
 
 def FEH2Z(feh,zsolar=None):
     '''FEH2Z:
