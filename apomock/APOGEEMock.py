@@ -361,12 +361,12 @@ class APOGEEMock:
         ##fi
         
         if isinstance(r_min,apu.quantity.Quantity):
-            self._r_min = r_min.to(apu.kpc)/self._ro
+            self._r_min = r_min.to(apu.kpc).value/self._ro
         else:
             self._r_min = r_min
         
         if isinstance(r_max,apu.quantity.Quantity):
-            self._r_max = r_max.to(apu.kpc)/self._ro
+            self._r_max = r_max.to(apu.kpc).value/self._ro
         else:
             self._r_max = r_max
 
