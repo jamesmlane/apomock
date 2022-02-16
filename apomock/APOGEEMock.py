@@ -24,8 +24,6 @@ import healpy.pixelfunc
 import mwdust
 from apomock.util.util import chabrier_imf,kroupa_imf,_xi_to_r,_r_to_xi,_cimf,Z2FEH
 
-import pdb
-
 # ----------------------------------------------------------------------------
 
 _DEGTORAD = np.pi/180.
