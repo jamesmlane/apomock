@@ -31,7 +31,8 @@ Mock generation requires an isochrone to provide H, J, and Ks magnitudes. A
 sample grid of PARSEC v1.2 isochrones can be downloaded [here](https://www.astro.utoronto.ca/~lane/share/apomock/data/). This grid has metal fraction 0.0001 <= z <= 0.0060 with spacing 0.0001, and 10 Gyr <= age <= 14 Gyr with spacing 0.5 Gyr.
 
 To begin import dependancies:
-```import apomock
+```
+import apomock
 from galpy import potential
 from apogee import select
 from astropy import units as apu
@@ -39,28 +40,63 @@ import mwdust
 ```
 
 We will create mock data corresponding to a power law density profile with slope `alpha=2`
-```denspot = potential.PowerSphericalPotential(alpha=2.)
+```
+denspot = potential.PowerSphericalPotential(alpha=2.)
 mock = apomock.APOGEEMock(denspot=denspot)
 ```
 
 We will now load in the isochrone, if the sample PARSEC grid has been downloaded it can be initialized using `load_parsec_isochrone()`, otherwise use `load_isochrone()`. We will select metal fraction of 0.0010 and age of 11 Gyr
-`mock.load_parsec_isochrone(filename=path_to_parsec_isochrone_grid,z=0.0010,log_age=np.log10(1.1e10))`
+```
+mock.load_parsec_isochrone(filename=path_to_parsec_isochrone_grid,z=0.0010,log_age=np.log10(1.1e10))
+```
 
 First sample masses from a Chabrier IMF, we'll make it `10^7` solar masses total. Astropy units are supported for most input.
-`mock.sample_masses(m_tot=1e7*apu.M_sun)`
+```
+mock.sample_masses(m_tot=1e7*apu.M_sun)
+```
 
 Now we draw position samples, we'll make the samples lie between galactocentric 
 radius 2 kpc and 70 kpc.
-`mock.sample_positions(r_min=2*apu.kpc, r_max=70*apu.kpc)`
+```
+mock.sample_positions(r_min=2*apu.kpc, r_max=70*apu.kpc)
+```
 
 Now we load in the dust map and define the APOGEE selection function. We'll use the most recent `Combined19` dust map, and we'll use the main APOGEE DR16 selection function (year 7). Calculation of the selection function is time consuming, it may be useful to save the selection function for future use.
-```dmap = mwdust.Combined19(filter='2MASS H')
+```
+dmap = mwdust.Combined19(filter='2MASS H')
 aposf = select.apogeeCombinedSelect(sample='main',year=7)
 ```
 
 Finally apply the observational program
-`mock.apply_selection_function(aposf, dmap)`
+```
+mock.apply_selection_function(aposf, dmap)
+```
+
+## Additional information
+
+Documentation is in progress, a few additional features are outlined here. Also see docstrings for individual methods for more information.
 
 The phase-space properties of the mock are held in a `galpy.orbit.Orbit` instance at `mock.orbs`. The isochrone-based properties of the mock, such as magnitudes, surface gravity, effective temperature, and more, are accessed using `mock.iso[mock.iso_match_indx]`. The masses of the samples are accessed at `mock.masses`. The APOGEE Location IDs of each sample are accessed at `mock.locid`. 
 
 A mock APOGEE allstar file can be generated using `mock.make_allstar()`.
+
+The `denspot` used for sampling must be spherically symmetric, however there are keywords in `sample_positions()` that allow transformation of a spherically symmetric density profile to a triaxial density profile with arbitrary rotation.
+
+If using non-PARSEC v1.2 isochrones then they must be loaded using `load_isochrone()` with a a dictionary (supplied to the argument `iso_keys`) that links the keys used to access the values in the isochrone with a common set of keys used by this program. The keys are listed below.
+
+The following are required for core functionality:
+- 'mass_initial' - Initial mass of each point in the isochrone
+- 'jmag' - J-band magnitude
+- 'hmag' - H-band magnitude
+- 'ksmag' - Ks-band magnitude
+
+The following are only required to make a mock APOGEE allstar file using `make_allstar()`:
+- 'z_initial' - Initial metal fraction (z) of each point in the isochrone
+- 'logg' - Log base 10 surface gravity
+- 'logteff' - Log base 10 effective surface temperature
+
+So for example if the initial mass in the isochrone is accessed by calling iso['Mini'], then one element of `iso_keys` should be {...,'mass_initial':'Mini',...} and so on.
+        
+## Features under construction
+- Sampling positions from disk and SCF-defined density profiles
+- Matching mass samples to a grid of isochrones, rather than just a single isochrone
