@@ -33,7 +33,7 @@ _parsec_1_2_iso_keys = {'mass_initial':'Mini',
                         'jmag':'Jmag',
                         'hmag':'Hmag',
                         'ksmag':'Ksmag',
-                        'logg':'logg'
+                        'logg':'logg',
                         'logteff':'logTe'
                         }
 
