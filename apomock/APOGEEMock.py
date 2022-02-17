@@ -576,7 +576,8 @@ class APOGEEMock:
 
     # Selection function application
     def apply_selection_function(self,aposf,dmap,iso=None,iso_keys=None,
-                                 orbs=None,ms=None,print_stats=False):
+                                 orbs=None,ms=None,force_reapply=False,
+                                 print_stats=False):
         '''apply_selection_function:
 
         Apply the APOGEE selection function to sampled data. The order of
@@ -597,6 +598,8 @@ class APOGEEMock:
             iso_keys (dict) - Isochrone key dictionary, see load_isochrone()
             orbs (galpy.orbit.Orbit) - Orbits representing the samples
             ms (np.array) - Masses of the samples
+            force_reapply (bool) - force a re-application of the selection 
+                function
             
         Returns:
             None, .orbs and .masses attributes are updated to hold the 
@@ -605,6 +608,10 @@ class APOGEEMock:
                 IDs of samples. The .iso_match_indx attribute holds 
                 indices of the isochrone which were matched to the samples.
         '''
+        if all(hasattr(self,attr) for attr in ['iso_match_indx','locid']) \
+            and not force_reapply:
+            raise RuntimeError('Selection function has already been applied!')
+            
         if iso is None or iso_keys is None:
             iso = self.iso
             iso_keys = self.iso_keys
