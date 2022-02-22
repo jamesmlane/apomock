@@ -251,19 +251,18 @@ class APOGEEMock:
         n_samples_guess = int(self._m_tot/m_avg)
         
         # Draw the first round of samples
-        icimf_samples = np.random.random(n_samples_guess)
-        ms = np.power(10,icimf_interp(icimf_samples))
+        ms = np.power(10,icimf_interp(np.random.random(n_samples_guess)))
         
         # Add more samples or take some away depending on the total sampled mass
         while np.sum(ms) < self._m_tot:
             n_samples_guess = int((self._m_tot-np.sum(ms))/m_avg)
             if n_samples_guess < 1: break
-            icimf_samples = np.random.random(n_samples_guess)
-            ms = np.append(ms,np.power(10,icimf_interp(icimf_samples)))
+            ms = np.append(ms,np.power(10,
+                icimf_interp(np.random.random(n_samples_guess))))
         if np.sum(ms) > self._m_tot:
             ms = ms[:np.where(np.cumsum(ms) > self._m_tot)[0][0]]
         
-        self.masses = ms
+        self.masses = ms.astype('float16')
     #def
     
     def _make_icimf_interpolator(self,imf,m_min,m_max):
