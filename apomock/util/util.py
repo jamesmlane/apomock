@@ -8,6 +8,7 @@
 
 import numpy as np
 import scipy.integrate
+from galpy import orbit
 
 # def chabrier01_lognormal():
 #     '''chabrier01_lognormal:
@@ -180,3 +181,24 @@ def FEH2Z(feh,zsolar=None):
     # else:
     if zsolar is None: zsolar= 0.0196
     return 10.**(feh+np.log10(zsolar))
+
+def join_orbs(orbs):
+    '''join_orbs:
+    
+    Join a list of orbit.Orbit objects together. They must share ro,vo
+    
+    Args:
+        orbs (orbit.Orbit) - list of individual orbit.Orbit objects
+    
+    Returns
+        orbs_joined (orbit.Orbit) - Joined orbit.Orbit object
+    '''
+    for i,o in enumerate(orbs):
+        if i == 0:
+            ro = o._ro
+            vo = o._vo
+            vxvvs = o._call_internal()
+        else:
+            assert ro==o._ro and vo==o._vo, 'ro and/or vo do not match'
+            vxvvs = np.append(vxvvs, o._call_internal(), axis=1)
+    return orbit.Orbit(vxvvs.T,ro=ro,vo=vo)
