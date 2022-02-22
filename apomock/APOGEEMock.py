@@ -864,6 +864,12 @@ class APOGEEMock:
         hpu_indx = np.take(dmap_hpu_argsort, hpu_indx_sorted, mode="clip")
         hpu_mask = dmap_hpu[hpu_indx] != hpu
         hpu_ma = np.ma.array(hpu_indx, mask=hpu_mask)
+        if np.any(np.sum(~hpu_ma.mask,axis=1) > 1): # Multiple lbIndx?
+            where_multi_lbIndx = np.where(np.sum(~hpu_ma.mask,axis=1) > 1)[0]
+            for j in range(len(where_multi_lbIndx)):
+                # Make out all but the highest resolution lbIndx
+                which_indices = np.where(~hpu_ma.mask[where_multi_lbIndx[j]])[0]
+                hpu_ma.mask[where_multi_lbIndx[j]][which_indices[1:]] = True
         lbIndx = hpu_ma.data[~hpu_ma.mask]
         return lbIndx
     
