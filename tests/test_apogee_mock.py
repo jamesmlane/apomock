@@ -62,6 +62,7 @@ def test_sample_mass_distribution_parameters():
     Test that the distribution of masses is bounded according to supplied 
     parameters
     '''
+    tol = 1e-3 # Required because mass samples are half-precision floats
     imf_types = ['chabrier','kroupa']
     denspot = potential.HernquistPotential()
     mock = APOGEEMock(denspot=denspot)
@@ -74,9 +75,9 @@ def test_sample_mass_distribution_parameters():
                 mock.sample_masses(m_tot, imf_type=imf, m_min=m_min,
                                    m_max=m_max, force_resample=True)
                 ms = mock.masses
-                assert np.min(ms) > m_min, 'Masses sampled below m_min'
-                assert np.max(ms) < m_max, 'Masses sampled above m_max'
-                assert np.fabs(np.sum(ms)-m_tot) < m_max,\
+                assert np.min(ms) > m_min-tol, 'Masses sampled below m_min'
+                assert np.max(ms) < m_max+tol, 'Masses sampled above m_max'
+                assert np.fabs(np.sum(ms)-m_tot) < 3.*m_max,\
                     'Total mass sampled does not match m_tot'
     
     m_mins = [0.1*apu.Msun,200.*apu.Mjup]
@@ -87,12 +88,12 @@ def test_sample_mass_distribution_parameters():
                 mock.sample_masses(m_tot, imf_type=imf, m_min=m_min,
                                    m_max=m_max, force_resample=True)
                 ms = mock.masses
-                assert np.min(ms) > m_min.to(apu.Msun).value,\
+                assert np.min(ms) > m_min.to(apu.Msun).value-tol,\
                     'Masses sampled below m_min when astropy used'
-                assert np.max(ms) < m_max.to(apu.Msun).value,\
+                assert np.max(ms) < m_max.to(apu.Msun).value+tol,\
                     'Masses sampled above m_max when astropy used'
                 m_tot_diff = np.fabs(np.sum(ms)-m_tot.to(apu.Msun).value)
-                assert m_tot_diff < m_max.to(apu.Msun).value,\
+                assert m_tot_diff < 3.*m_max.to(apu.Msun).value,\
                     'Total mass sampled does not match m_tot when astropy used'
                 
         
@@ -123,7 +124,7 @@ def test_sample_mass_distribution_matches_IMF():
             imf_lim_mass = scipy.integrate.quad(m_lim_int_callable, a=m_min, 
                                                 b=lim)[0]
             imf_lim_mass_frac = imf_lim_mass/imf_mass_tot
-            sample_lim_mass_frac = np.sum(ms[ms<lim])/m_tot
+            sample_lim_mass_frac = np.sum(ms[ms<lim].astype('float64'))/m_tot
             assert np.fabs(sample_lim_mass_frac-imf_lim_mass_frac)/imf_lim_mass_frac\
                 < 0.01, 'Sample mass fraction does not match IMF integration'
 
