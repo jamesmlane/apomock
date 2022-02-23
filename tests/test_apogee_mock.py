@@ -8,12 +8,15 @@
 '''APOGEEMock class tests'''
 
 ### Imports
+from apomock import APOGEEMock
+from apomock.util.util import chabrier_imf,kroupa_imf
 import numpy as np
 from astropy import units as apu
-from galpy import potential
-from apomock import APOGEEMock
+from galpy import potential,orbit
 import scipy.integrate
-from apomock.util.util import chabrier_imf,kroupa_imf
+import mwdust
+
+_ro,_vo = 8.,220.
 
 def test_initialization():
     '''test_class_initialization:
@@ -160,3 +163,62 @@ def test_sample_radial_mass_profile():
             print(np.fabs(pot_mfrac-sample_mfrac)/pot_mfrac)
             assert np.fabs(pot_mfrac-sample_mfrac)/pot_mfrac < 5e-3,\
                 'sample mass profile does not match denspot'
+
+def test_lbIndx_matches_mwdust():
+    '''test_lbIndx_matches_mwdust:
+    
+    Test that calculated lbIndx values match those from mwdust
+    '''
+    dmap = mwdust.Combined19(filter='2MASS H')
+    # Mock and orbits
+    mock = APOGEEMock(
+        denspot=potential.HernquistPotential(ro=_ro,vo=_vo))
+    n = int(1e2)
+    # Sample random galactic coordintes, distances out to 50 kpc
+    ll=np.random.random(n)*360.
+    bb=np.arccos(2*np.random.random(n)-1)*180./np.pi-90.
+    dist = np.random.random(size=n)*50.
+    dm = 5.*np.log10(dist)+10.
+    mul,mub,vlos = np.zeros_like(ll), np.zeros_like(ll), np.zeros_like(ll)
+    vxvvs = np.array([ll,bb,dist,mul,mub,vlos]).T
+    orbs = orbit.Orbit(vxvvs,lb=True)
+    # Calculate lbIndx using mwdust and mock, then compare
+    lbIndx_dmap = np.zeros(n)
+    for i in range(n):
+        lbIndx_dmap[i] = dmap._lbIndx(ll[i],bb[i])
+    lbIndx_mock = mock._get_lbIndx(orbs,dmap)
+    assert np.all(lbIndx_dmap == lbIndx_mock.astype(int)),\
+        'lbIndx values from mock do not match values from mwdust'
+
+def test_extinction_matches_mwdust():
+    '''test_extinction_matches_mwdust:
+    
+    Test that calculated H-band extinctions match those from mwdust
+    '''
+    dmaps = [mwdust.Combined19,mwdust.Combined15]
+    tol = 1e-10 # Should be exact match
+    # Mock and orbits
+    mock = APOGEEMock(
+        denspot=potential.HernquistPotential(ro=_ro,vo=_vo))
+    n = int(1e2)
+    # Sample random galactic coordintes, distances out to 50 kpc
+    ll=np.random.random(n)*360.
+    bb=np.arccos(2*np.random.random(n)-1)*180./np.pi-90.
+    dist = np.random.random(size=n)*50.
+    dm = 5.*np.log10(dist)+10.
+    mul,mub,vlos = np.zeros_like(ll), np.zeros_like(ll), np.zeros_like(ll)
+    vxvvs = np.array([ll,bb,dist,mul,mub,vlos]).T
+    orbs = orbit.Orbit(vxvvs,lb=True)
+    for i in range(len(dmaps)):
+        dmap = dmaps[i](filter='2MASS H')
+        # Calculate AH using mwdust and mock, then compare
+        lbIndx_mock = mock._get_lbIndx(orbs,dmap)
+        AH_mock = mock._calculate_AH(dmap,lbIndx_mock,5.*np.log10(dist)+10.)
+        AH_dmap = np.zeros(n)
+        for j in range(n):
+            #import pdb
+            #pdb.set_trace()
+            AH_dmap[j] = dmap(ll[j],bb[j],dist[j])
+        assert np.all(np.fabs(AH_mock-AH_dmap)<tol),\
+            'AH values from mock do not match values from mwdust for dust map'\
+            +str(dmap)
