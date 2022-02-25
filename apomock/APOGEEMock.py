@@ -842,6 +842,9 @@ class APOGEEMock:
         Returns:
             lbindx (np.array) - dustmap indices of samples
         '''
+        # Check if using the null dust map
+        if isinstance(dmap,mwdust.Zero):
+            return np.ones(orbs.shape[0])*np.nan
         gl = orbs.ll(use_physical=True).value
         gb = orbs.bb(use_physical=True).value
         dist = np.atleast_2d(orbs.dist(use_physical=True).to(apu.kpc).value).T
@@ -887,6 +890,8 @@ class APOGEEMock:
         Returns:
             AH (np.array) - H-band extinction
         '''
+        if isinstance(dmap,mwdust.Zero):
+            return np.zeros_like(dm)
         unique_lbIndx = np.unique(lbIndx).astype(int)
         AH = np.zeros(len(lbIndx))
         for i in range(len(unique_lbIndx)):
