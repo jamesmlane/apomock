@@ -649,7 +649,7 @@ class APOGEEMock:
         ncur = len(ms)
 
         # Remove samples with apparent Hmag below faintest APOGEE Hmax
-        dm = 5.*np.log10(orbs.dist().to(apu.pc).value)-5.
+        dm = 5.*np.log10(orbs.dist(use_physical=True).to(apu.pc).value)-5.
         where_good_Hmag1 = np.where(np.nanmax(aposf_Hmax) > (Hmag+dm) )[0]
         orbs = orbs[where_good_Hmag1]
         ms = ms[where_good_Hmag1]
