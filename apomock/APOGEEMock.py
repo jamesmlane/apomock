@@ -621,6 +621,9 @@ class APOGEEMock:
             ms = self.masses
         ncur = len(ms)
         
+        # For summary
+        self._dmap_class_name = dmap.__class__
+        
         # Get some information about APOGEE - place these somewhere more 
         # appropriate so they make sense
         nspec = np.nansum(aposf._nspec_short,axis=1) +\
@@ -932,3 +935,69 @@ class APOGEEMock:
         allstar['FE_H'] = Z2FEH(iso_match[self.iso_keys['z_initial']])
         return allstar
     #def
+    
+    def _write_mock_summary(self):
+        '''_write_mock_summary:
+        
+        Write a summary of the mock, including information about the density
+        profile, sampling parameters, the isochrone, etc...
+        
+        Args:
+            None
+        
+        Returns:
+            summary (list) - List of strings that represent the summary
+        '''
+        summary = []
+        summary.append('Summary of '+str(self.__class__)+':')
+        summary.append('ro : '+str(self._ro))
+        summary.append('vo : '+str(self._vo))
+        summary.append('')
+        
+        # Denspot
+        summary.append('denspot:')
+        summary.append('class : '+str(self._denspot.__class__))
+        denspot_keys_ignore = ['dim','isRZ','isNonAxi','hasC','hasC_dxdv',
+            'hasC_dens','_nemo_accname']
+        for key in self._denspot.__dict__.keys():
+            if key in denspot_keys_ignore: continue
+            summary.append(key+' : '+str(self._denspot.__dict__[key]))
+        summary.append('')
+        
+        # Isochrone
+        summary.append('isochrone:')
+        _builtin_iso_attrs = ['_iso_z','_iso_log_age']
+        if all(hasattr(self,attr) for attr in _builtin_iso_attrs):
+            for attr in _builtin_iso_attrs:
+                summary.append(attr+' : '+str(getattr(self,attr)))
+        else:
+            summary.append('external isochrone')
+            iso_unique_zini = np.unique(self.iso[self.iso_keys['z_initial']])
+            iso_unique_logAge = np.unique(self.iso[self.iso_keys['log_age']])
+            summary.append('unique z_initial : '+str(iso_unique_zini))
+            summary.append('unique log_age : '+str(iso_unique_logAge))
+        summary.append('')
+        
+        # Mass sampling
+        summary.append('mass sampling:')
+        mass_sampling_attrs = ['_m_tot','_m_min','_m_max','_imf_type']
+        for attr in mass_sampling_attrs:
+            if hasattr(self,attr):
+                summary.append(attr+' : '+str(getattr(self,attr)))
+        summary.append('')
+        
+        # Position sampling
+        summary.append('mass sampling:')
+        mass_sampling_attrs = ['_r_min','_r_max','_scale','_b','_c','_zvec',
+            '_pa','_alpha','_beta','_gamme']
+        for attr in mass_sampling_attrs:
+            if hasattr(self,attr):
+                summary.append(attr+' : '+str(getattr(self,attr)))
+        summary.append('')
+        
+        # Dust map
+        summary.append('dust map:')
+        summary.append('class : '+str(self._dmap_class_name))
+        
+        return summary
+                
