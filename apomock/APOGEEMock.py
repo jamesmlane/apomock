@@ -389,7 +389,8 @@ class APOGEEMock:
             z_samples *= self._c
             # Prioritize zvec transformation
             if zvec is not None or pa is not None:
-                if zvec is None: zvec = [0.,0.,1.]
+                if zvec is None: zvec = np.array([0.,0.,1.])
+                else: zvec = np.asarray(zvec)
                 if pa is None: pa = 0.
                 self._zvec = zvec
                 self._pa = pa
@@ -507,6 +508,41 @@ class APOGEEMock:
         Transform coordinates using the axis-angle method. First align the
         z-axis of the coordinate system with a vector (zvec) and then rotate 
         about the new z-axis by an angle (pa).
+
+        Args:
+            x,y,z (array) - Coordinates
+            zvec (list) - z-axis to align the new coordinate system
+            pa (float) - Rotation about the transformed z-axis
+
+        Returns:
+            x_rot,y_rot,z_rot (array) - Rotated coordinates 
+        '''
+        pa_rot = np.array([[np.cos(pa),-np.sin(pa), 0.],
+                           [np.sin(pa), np.cos(pa), 0.],
+                           [0.        , 0.        , 1.]])
+
+        zvec /= np.sqrt(np.sum(zvec**2.))
+        zvec_rot = np.squeeze(_rotate_to_arbitrary_vector(
+            np.atleast_2d([0,0,1]),zvec))
+        # R = np.dot(pa_rot,zvec_rot)
+        R = np.dot(zvec_rot,pa_rot)
+        
+        xyz = np.squeeze(np.dstack([x,y,z]))
+        if np.ndim(xyz) == 1:
+            xyz_rot = np.dot(R, xyz)
+            x_rot,y_rot,z_rot = xyz_rot[0],xyz_rot[1],xyz_rot[2]
+        else:
+            xyz_rot = np.einsum('ij,aj->ai', R, xyz) # replac with np.dot(R,xyz.T).T
+            x_rot,y_rot,z_rot = xyz_rot[:,0],xyz_rot[:,1],xyz_rot[:,2]
+        return x_rot,y_rot,z_rot
+    
+    def _transform_zvecpa_old(self,x,y,z,zvec,pa):
+        '''_transform_zvecpa_old:
+
+        Transform coordinates using the axis-angle method the old way, which is 
+        inverse to how it should be done. First align the z-axis of the 
+        coordinate system with a vector (zvec) and then rotate about the new 
+        z-axis by an angle (pa).
 
         Args:
             x,y,z (array) - Coordinates
