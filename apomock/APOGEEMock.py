@@ -762,6 +762,105 @@ class APOGEEMock:
         self.iso_match_indx = iso_match_indx[sf_keep_indx]
     #def
     
+    def apply_selection_function_rc_test(self,aposf,rcsf,dmap,orbs=None,MH=-1.5,
+                                         ms=None,force_reapply=False,
+                                         print_stats=False):
+        '''apply_selection_function_rc_test:
+
+        Apply a fake selection function to sampled data to create a constant
+        magnitude sample for testing purposes.
+        
+        1. Match isochrone to the samples based on initial mass
+        2. Remove samples with magnitudes fainter than the faintest 
+            APOGEE Hmax
+        3. Remove samples which lie outside the APOGEE footprint
+        4. Remove samples with magnitudes fainter than the APOGEE Hmax 
+            one a field-by-field basis
+        5. Calculate H-band extinction and then apply the APOGEE 
+            selection function
+        
+        Args:
+            aposf (apogee.select.*) - APOGEE selection function
+            dmap (mwdust.DustMap3D) - Dust map
+            iso (np.array) - Isochrone
+            iso_keys (dict) - Isochrone key dictionary, see load_isochrone()
+            orbs (galpy.orbit.Orbit) - Orbits representing the samples
+            ms (np.array) - Masses of the samples
+            force_reapply (bool) - force a re-application of the selection 
+                function
+            
+        Returns:
+            None, .orbs and .masses attributes are updated to hold the 
+                samples which survive application of the APOGEE selection
+                function. The .locid attribute holds APOGEE field location 
+                IDs of samples. The .iso_match_indx attribute holds 
+                indices of the isochrone which were matched to the samples.
+        '''
+        if all(hasattr(self,attr) for attr in ['iso_match_indx','locid']) \
+            and not force_reapply:
+            raise RuntimeError('Selection function has already been applied!')
+            
+        if orbs is None:
+            orbs = self.orbs
+        if ms is None:
+            ms = self.masses
+        ncur = len(ms)
+        
+        # For summary
+        self._dmap_class_name = dmap.__class__
+        
+        # Get some information about APOGEE - place these somewhere more 
+        # appropriate so they make sense
+        nspec = np.nansum(aposf._nspec_short,axis=1) +\
+                np.nansum(aposf._nspec_medium,axis=1) +\
+                np.nansum(aposf._nspec_long,axis=1)
+        good_nspec_fields = np.where(nspec>=1.)[0]
+        
+        # Assign all samples the same H-band magnitude
+        ncur = len(ms)
+        Hmag = np.full(ncur,MH)
+        dm = 5.*np.log10(orbs.dist(use_physical=True).to(apu.pc).value)-5.
+
+        # Remove samples that lie outside the APOGEE observational footprint
+        fp_indx,locid = self._remove_samples_outside_footprint(orbs,aposf,
+            good_nspec_fields)
+        orbs = orbs[fp_indx]
+        ms = ms[fp_indx]
+        dm = dm[fp_indx]
+        Hmag = Hmag[fp_indx]
+        if print_stats:        
+            print(str(len(fp_indx))+'/'+str(ncur)+' samples found within'+\
+                  ' observational footprint')
+            print('Kept '+str(round(100*len(fp_indx)/ncur,2))+\
+                  ' % of samples')
+        ncur = len(ms)
+
+        # Get lbIndx for the dust map and compute AH
+        # lbIndx = self._get_lbIndx(orbs,dmap)
+        # AH = self._calculate_AH(dmap,lbIndx,dm)
+
+        # Apply the selection function
+        Hmag_app = Hmag + dm # + AH
+        # JK0 = Jmag - Ksmag
+        sf_keep_indx = np.zeros(len(orbs),dtype=bool)
+        for i in range(len(orbs)):
+            sf_prob = rcsf(Hmag_app[i])
+            sf_keep_indx[i] = sf_prob > np.random.random(size=1)[0] 
+        
+        #import pdb
+        #pdb.set_trace()
+        
+        if print_stats:
+            print(str(np.sum(sf_keep_indx))+'/'+str(ncur)+\
+                      ' samples survive the selection function')
+            print('Kept '+str(round(100*np.sum(sf_keep_indx)/ncur,2))+\
+                  ' % of samples')
+
+        self.orbs = orbs[sf_keep_indx]
+        self.locid = locid[sf_keep_indx]
+        self.masses = ms[sf_keep_indx]
+    #def
+    
     def _match_isochrone_to_samples(self,iso,ms,m_err,iso_keys):
         '''_match_isochrone_to_samples:
 
