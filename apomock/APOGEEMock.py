@@ -410,9 +410,9 @@ class APOGEEMock:
 
         # Make into orbits
         orbs = orbit.Orbit(vxvv=np.array([R_samples,np.zeros(n),np.zeros(n),
-            z_samples,np.zeros(n),phi_samples]).T,ro=self._ro,vo=self._ro)
+            z_samples,np.zeros(n),phi_samples]).T,ro=self._ro,vo=self._vo)
         self.orbs = orbs
-
+    
     def _sample_r(self,denspot,n,r_min,r_max,a=1.):
         '''_sample_r:
 
@@ -609,7 +609,7 @@ class APOGEEMock:
             xyz_rot = np.einsum('ij,aj->ai', R, xyz)
             x_rot,y_rot,z_rot = xyz_rot[:,0],xyz_rot[:,1],xyz_rot[:,2]
         return x_rot,y_rot,z_rot
-
+    
     # Selection function application
     def apply_selection_function(self,aposf,dmap,iso=None,iso_keys=None,
                                  orbs=None,ms=None,force_reapply=False,
