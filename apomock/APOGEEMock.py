@@ -39,15 +39,15 @@ _parsec_1_2_iso_keys = {'mass_initial':'Mini',
                         'logteff':'logTe'
                         }
 
-class APOGEEMock:
+class _APOGEEMock:
     '''APOGEEMock:
     
-    Class for mock data
+    Super class for mock APOGEE data
     '''
     def __init__(self,denspot,ro=None,vo=None,zo=0.):
         '''__init__:
         
-        Instantiate an APOGEEMock class. 
+        Instantiate an _APOGEEMock class. 
         
         Args:
             denspot (galpy.potential.Potential) - density potential, must 
