@@ -895,8 +895,8 @@ class APOGEEMockSpherical(_APOGEEMock):
         Args:
             n (int) - Number of samples to draw [1]
             denspot (potential.Potential) - Potential representing density profile
-            r_min (float) - Minimum radius to sample [0]
-            r_max (float) - Maximum radius to sample [infinity]
+            r_min (float) - Minimum radius to sample [default 0]
+            r_max (float) - Maximum radius to sample [default infinity]
             scale (float) - Density profile scale radius for mass sampling 
                 interpolator (optional)
             b (float) - triaxial y/x scale ratio (optional)
@@ -906,7 +906,6 @@ class APOGEEMockSpherical(_APOGEEMock):
             alpha (float) - Roll rotation about the x-axis  (optional)
             beta (float) - Pitch rotation about the transformed y-axis (optional)
             gamma (float) - Yaw rotation around twice-transformed z-axis (optional)
-            return_orbits (bool) - Return the orbits [False]
             force_resample (bool) - Force a re-draw of masses, overwriting
                 existing masses [False]
 
