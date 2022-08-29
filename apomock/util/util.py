@@ -10,67 +10,131 @@ import numpy as np
 import scipy.integrate
 from galpy import orbit
 
-# def chabrier01_lognormal():
-#     '''chabrier01_lognormal:
-#     '''
-
-# def chabrier01_exponential():
-#     '''chabrier01_exponential:
-#     '''
+def chabrier01_lognormal_imf(m,A=1.):
+    '''chabrier01_lognormal_imf:
     
-# def chabrier03_lognormal():
-#     '''chabrier01_lognormal:
-#     '''
-
-# def chabrier05_lognormal():
-#     '''chabrier01_lognormal:
-#     '''
-    
-
-# def _chabrier_lognormal(m,m0=0.,sigma=1.):
-#     '''_chabrier_lognormal:
-    
-#     Lognormal-type Chabrier initial mass function
-    
-#     Args:
-    
-#     Returns:
-#         dn/dm (np.ndarray) - Value of the IMF for given linear mass interval
-#     '''
-#     dNdlogm = np.exp(-(np.log10(m)-np.log10(m0))/(2.*sigma**2.)
-#     dlogmdm = 1./m/np.log(10.)
-#     return A*dNdlogm*dlogmdm
-
-def chabrier_imf(m,k=0.0193,A=1.):
-    '''chabrier_imf:
-    
-    Chabrier initial mass function
+    Lognormal IMF of Chabrier (2001), ApJ, Vol 554, Issue 2
     
     Args:
-        m (np.ndarray) - Masses [solar]
-        k (float) - scale factor to apply to the IMF where m>1 to equalize it 
-            to the IMF where m<1
-        A (float) - arbitrary scale factor
-    
-    Returns:
-        Nm (np.ndarray) - Value of the IMF for given masses
+        m (float or np.array) - Mass in solar units
+        A (float) - Overall normalization of the profile (Profile is already
+            normalized, see reference)
+        
+    Returns
+        dN/dm (float or np.array) - Value of the IMF (note not dN/dlogm)
     '''
-    k = 0.0193 # Equalizes m<1 and m>1 at m=1
-    a = 2.3
-    
     if not isinstance(m,np.ndarray):
         m = np.atleast_1d(m)
-    ##fi
     
-    where_m_gt_1 = m>1
+    # Parameters for Chabrier (2001) IMF
+    _A,_m0,_sigma = 0.141,0.1,0.627
+    return A*_lognormal_imf(m,A=_A,m0=_m0,sigma=_sigma)
+
+def chabrier01_exponential_imf(m,A=1.):
+    '''chabrier01_exponential_imf:
+    
+    Exponential IMF of Chabrier (2001), ApJ, Vol 554, Issue 2
+    
+    Args:
+        m (float or np.array) - Mass in solar units
+        A (float) - Overall normalization of the profile (Profile is already
+            normalized, see reference)
+        
+    Returns
+        dN/dm (float or np.array) - Value of the IMF (note not dN/dlogm)
+    '''
+    if not isinstance(m,np.ndarray):
+        m = np.atleast_1d(m)
+    
+    # Parameters for Chabrier (2001) IMF
+    _A,_m0,_alpha,_beta = 3.,716.4,-3.3,0.25
+    return A*_A*(m**_alpha)*np.exp(-(m/_m0)**_beta)
+
+def chabrier03_lognormal_imf(m,A=1.):
+    '''chabrier03_lognormal_imf:
+    
+    Lognormal IMF of Chabrier (2003), PASP, Vol 115, Issue 809
+    
+    Args:
+        m (float or np.array) - Mass in solar units
+        A (float) - Overall normalization of the profile (Profile is already
+            normalized, see reference)
+    
+    Returns:
+        dN/dm (float or np.array) - Value of the IMF (note not dN/dlogm)
+    '''
+    if not isinstance(m,np.ndarray):
+        m = np.atleast_1d(m)
+    
+    m_gt_1 = m>1
     Nm = np.empty(len(m))
-    Nm[~where_m_gt_1] = (0.158/(np.log(10)*m[~where_m_gt_1]))\
-                        *np.exp(-(np.log10(m[~where_m_gt_1])-np.log10(0.08))**2\
-                               /(2*0.69**2))
-    Nm[where_m_gt_1] = k*m[where_m_gt_1]**(-a)
-    Nm[m<0.01] = 0
+    
+    # Parameters for Chabrier (2003) IMF
+    _A_ln,_m0_ln,_sigma_ln = 0.158,0.079,0.69
+    _A_pl,_alpha_pl = 0.0433,2.3
+    Nm[~m_gt_1] = _lognormal_imf(m[~m_gt_1],_A_ln,_m0_ln,_sigma_ln)
+    Nm[m_gt_1] = _powerlaw_imf(m[m_gt_1],_A_pl,_alpha_pl)
     return A*Nm
-#def
+
+def chabrier05_lognormal_imf(m,A=1.):
+    '''chabrier03_lognormal_imf:
+    
+    Lognormal IMF of Chabrier (2005), ASSL, Vol 327, Page 41
+    
+    Args:
+        m (float or np.array) - Mass in solar units
+        A (float) - Overall normalization of the profile (Profile is already
+            normalized, see reference)
+    
+    Returns:
+        dN/dm (float or np.array) - Value of the IMF (note not dN/dlogm)
+    '''
+    if not isinstance(m,np.ndarray):
+        m = np.atleast_1d(m)
+    
+    # Parameters for Chabrier (2005) IMF
+    _A,_m0,_sigma = 0.093,0.2,0.55
+    return A*_lognormal_imf(m,A=_A,m0=_m0,sigma=_sigma)
+
+def _lognormal_imf(m,A=1.,m0=0.,sigma=1.):
+    '''_chabrier_lognormal:
+    
+    Lognormal-type initial mass function (e.g. Chabrier 2001, 2003)
+    
+    Args:
+        m (float or np.array) - Mass in solar units
+        A (float) - Normalization
+        m0 (float) - Central mass of the distribution
+        sigma (float) - Dispersion of the distribution
+    
+    Returns:
+        dN/dm (np.ndarray) - Value of the IMF for given linear mass interval. 
+            Note not dN/dlogm
+    '''
+    dNdlogm = np.exp(-(np.log10(m)-np.log10(m0))**2.)/(2.*sigma**2.)
+    dlogmdm = 1./m/np.log(10.)
+    return A*dNdlogm*dlogmdm
+
+def _powerlaw_imf(m,A=1.,x=1.3):
+    '''_powerlaw_imf:
+    
+    Power law-type initial mass function (e.g. Chabrier 2003, Salpeter).
+    
+    Note the power law index is for dN/dlogm = A*m^(-x) even though the 
+    returned value is dN/dm, not dN/dlogm.
+    
+    Args:
+        m (float or np.array) - Mass in solar units
+        A (float) - Normalization
+        x (float) - Power law index
+        
+    Returns:
+        dN/dm (float or np.array) - Value of the IMF for given linear mass
+            interval. Note not dN/dlogm
+    '''
+    dNdlogm = m**(-x)
+    dlogmdm = 1./m/np.log(10.)
+    return A*dNdlogm*dlogmdm
 
 def kroupa_imf(m,k1=1.):
     '''kroupa_imf:
