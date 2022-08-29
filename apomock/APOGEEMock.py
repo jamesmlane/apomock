@@ -191,18 +191,26 @@ class _APOGEEMock:
         
         self.iso = iso
         self.iso_keys = _parsec_1_2_iso_keys
+        return None
     
     # Mass sampling
-    def sample_masses(self,m_tot,imf_type='chabrier',m_min=None,m_max=None,
-                      force_resample=False):
+    def sample_masses(self,m_tot,imf_type='chabrier03_lognormal',m_min=None,
+                      m_max=None,force_resample=False):
         '''sample_masses:
         
         Draw mass samples from an IMF. 
         
+        Supported IMFs are:
+            chabrier01_lognormal
+            chabrier01_exponential
+            chabrier03_lognormal
+            chabrier05_lognormal
+            kroupa
+        
         Args:
             m_tot (float) - Total mass worth of stars to sample in Msun
-            imf_type (string, optional) - IMF type, either chabrier or kroupa.
-                Default is chabrier
+            imf_type (string, optional) - IMF type [default Chabrier 03 
+                lognormal]
             m_min (float, optional) - minimum sample mass bound for the IMF in 
                 Msun. If not supplied will be set to minimum mass in isochrone.
             m_max (float, optional) - maximum sample mass bound for the IMF in 
@@ -236,13 +244,25 @@ class _APOGEEMock:
             else:
                 self._m_max = m_max
         
-        assert imf_type in ['chabrier','kroupa'],\
-            'Only Chabrier and Kroupa IMFs currently supported'
+        _supported_imfs = ['chabrier01_lognormal', 'chabrier01_exponential',
+                           'chabrier03_lognormal', 'chabrier05_lognormal',
+                           'chabrier', 'kroupa']
+        assert imf_type in _supported_imfs,\
+            'supported IMF keys are: '+str(_supported_imfs)
         self._imf_type = imf_type
         
         # Make the icimf interpolator
-        if self._imf_type == 'chabrier':
-            imf_func = chabrier_imf
+        if self._imf_type == 'chabrier01_lognormal':
+            imf_func = chabrier01_lognormal_imf
+        elif self._imf_type == 'chabrier01_exponential':
+            imf_func = chabrier01_exponential_imf
+        elif self._imf_type == 'chabrier03_lognormal':
+            imf_func = chabrier03_lognormal_imf
+        elif self._imf_type == 'chabrier05_lognormal':
+            imf_func = chabrier05_lognormal_imf
+        elif self._imf_type == 'chabrier':
+            warnings.warn('"chabrier" is ambiguous, using Chabrier 03 lognormal')
+            imf_func = chabrier03_lognormal_imf
         elif self._imf_type == 'kroupa':
             imf_func = kroupa_imf
         icimf_interp = self._make_icimf_interpolator(imf_func,self._m_min,
@@ -267,8 +287,8 @@ class _APOGEEMock:
             ms = ms[:np.where(np.cumsum(ms) > self._m_tot)[0][0]]
         
         self.masses = ms
-    #def
-    
+
+        
     def _make_icimf_interpolator(self,imf,m_min,m_max):
         '''_make_icimf_interpolator:
         
