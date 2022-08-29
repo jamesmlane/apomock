@@ -13,9 +13,9 @@ if '--no-downloads' not in sys.argv:
     try:
         subprocess.check_call(['wget',_PARSEC_ISO_GRID_URL,'-O',os.getcwd()+\
                                '/apomock/data/'+_PARSEC_ISO_GRID_NAME])
-	_include_package_data = True
+        _include_package_data = True
     except subprocess.CalledProcessError:
-	_include_package_data = False
+        _include_package_data = False
         print('\033[1m'+'Downloading PARSEC v1.2 isochrone grid failed'+'\033[0m')
 
 setuptools.setup(

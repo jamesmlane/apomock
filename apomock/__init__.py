@@ -1,1 +1,1 @@
-from apomock.APOGEEMock import APOGEEMock
+from apomock.APOGEEMock import APOGEEMockSpherical,APOGEEMockDisk
