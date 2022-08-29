@@ -21,40 +21,61 @@ _ro,_vo = 8.,220.
 def test_initialization():
     '''test_class_initialization:
     
-    Tests that the APOGEEMOCK class initializes with correct properties
+    Tests that the APOGEEMOCK* classes initializ with correct properties
     '''
     # denspot correct
-    denspot = potential.HernquistPotential()
-    mock = APOGEEMock(denspot=denspot)
-    assert isinstance(mock._denspot, potential.HernquistPotential),\
-        'denspot not set correctly'
+    denspot_spher = potential.HernquistPotential()
+    mock_spher = APOGEEMockSpherical(denspot=denspot_spher)
+    assert isinstance(mock_spher._denspot, potential.HernquistPotential),\
+        'spherical denspot not set correctly'
+    denspot_disk = potential.DoubleExponentialDiskPotential()
+    mock_disk = APOGEEMockDisk(denspot=denspot_disk)
+    assert isinstance(mock_disk._denspot, 
+                      potential.DoubleExponentialDiskPotential),\
+        'disk denspot not set correctly'
     
     # ro/vo correct
     ros = [8.1,8.275]
     vos = [220.,231.7]
     for ro,vo in zip(ros,vos):
-        mock = APOGEEMock(denspot=denspot,ro=ro,vo=vo)
-        assert mock._ro == ro, 'ro not set correctly'
-        assert mock._vo == vo, 'vo not set correctly'
+        mock_spher = APOGEEMockSpherical(denspot=denspot_spher,ro=ro,vo=vo)
+        assert mock_spher._ro == ro, 'ro not set correctly for spherical mock'
+        assert mock_spher._vo == vo, 'vo not set correctly for spherical mock'
+        mock_disk = APOGEEMockDisk(denspot=denspot_disk,ro=ro,vo=vo)
+        assert mock_disk._ro == ro, 'ro not set correctly for disk mock'
+        assert mock_disk._vo == vo, 'vo not set correctly for disk mock'
     
     # ro/vo in astropy units correct
     ros = [8.2*apu.kpc, 8347.*apu.pc]
     vos = [224.*apu.km/apu.s, 2.3*apu.pc/apu.Myr]
     for ro,vo in zip(ros,vos):
-        mock = APOGEEMock(denspot=denspot,ro=ro,vo=vo)
-        assert mock._ro == ro.to(apu.kpc).value,\
-            'ro in astropy units not set correctly'
-        assert mock._vo == vo.to(apu.km/apu.s).value,\
-            'vo in astropy units not set correctly'
-
+        mock_spher = APOGEEMockSpherical(denspot=denspot_spher,ro=ro,vo=vo)
+        assert mock_spher._ro == ro.to(apu.kpc).value,\
+            'ro in astropy units not set correctly for spherical mock'
+        assert mock_spher._vo == vo.to(apu.km/apu.s).value,\
+            'vo in astropy units not set correctly for spherical mock'
+        mock_disk = APOGEEMockDisk(denspot=denspot_disk,ro=ro,vo=vo)
+        assert mock_disk._ro == ro.to(apu.kpc).value,\
+            'ro in astropy units not set correctly for disk mock'
+        assert mock_disk._vo == vo.to(apu.km/apu.s).value,\
+            'vo in astropy units not set correctly for disk mock'
+    
     # ro/vo inheritance from denspot
     ros = [8.2*apu.kpc, 8347.*apu.pc, 8.275]
     vos = [224.*apu.km/apu.s, 2.3*apu.pc/apu.Myr, 231.7]
     for ro,vo in zip(ros,vos):
-        denspot = potential.HernquistPotential(ro=ro,vo=vo)
-        mock = APOGEEMock(denspot=denspot)
-        assert mock._ro == denspot._ro,'ro not inherited from denspot'
-        assert mock._vo == denspot._vo,'vo not inherited from denspot'
+        denspot_spher = potential.HernquistPotential(ro=ro,vo=vo)
+        mock_spher = APOGEEMockSpherical(denspot=denspot_spher)
+        assert mock_spher._ro == denspot_spher._ro,\
+            'ro not inherited from denspot for spherical mock'
+        assert mock_spher._vo == denspot_spher._vo,\
+            'vo not inherited from denspot for spherical mock'
+        denspot_disk = potential.DoubleExponentialDiskPotential(ro=ro,vo=vo)
+        mock_disk = APOGEEMockDisk(denspot=denspot_disk)
+        assert mock_disk._ro == denspot_disk._ro,\
+            'ro not inherited from denspot for disk mock'
+        assert mock_disk._vo == denspot_disk._vo,\
+            'vo not inherited from denspot for disk mock'
 
 def test_sample_mass_distribution_parameters():
     '''test_sample_mass_distribution_parameters
