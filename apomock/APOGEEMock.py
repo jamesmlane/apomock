@@ -125,7 +125,8 @@ class _APOGEEMock:
         
         Args:
             iso (numpy.ndarray) - Isochrone array
-            iso_keys (dict) - Dictionary of keys for the isochrone
+            iso_keys (dict) - Dictionary of keys for the isochrone [default 
+                parsec 1.2 keys]
         
         Returns:
             None
@@ -134,8 +135,8 @@ class _APOGEEMock:
         self.iso = iso
         self.iso_keys = iso_keys
         return None
-    #def
-       
+
+    
     def load_parsec_isochrone(self,filename,z,log_age,remove_wd_points=True,
                               iso_keys=_parsec_1_2_iso_keys):
         '''load_parsec_isochrone:
