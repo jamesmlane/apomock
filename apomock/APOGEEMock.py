@@ -13,6 +13,7 @@ __author__ = "James Lane"
 
 ### Imports
 import numpy as np
+import warnings
 from galpy import potential
 from galpy import orbit
 from galpy.util import config,_rotate_to_arbitrary_vector
@@ -22,7 +23,8 @@ import scipy.interpolate
 import scipy.integrate
 import healpy.pixelfunc
 import mwdust
-from apomock.util.util import chabrier_imf,kroupa_imf,_xi_to_r,_r_to_xi,_cimf,Z2FEH
+from apomock.util.util import chabrier01_lognormal_imf, chabrier01_exponential_imf, chabrier03_lognormal_imf, chabrier05_lognormal_imf, kroupa_imf
+from apomock.util.util import _xi_to_r,_r_to_xi,_cimf,Z2FEH
 
 # ----------------------------------------------------------------------------
 
