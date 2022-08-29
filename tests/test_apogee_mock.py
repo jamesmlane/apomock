@@ -9,7 +9,7 @@
 
 ### Imports
 from apomock import APOGEEMockSpherical,APOGEEMockDisk
-from apomock.util.util import chabrier03_lognormal_imf,kroupa_imf
+from apomock.util.util import chabrier01_lognormal_imf, chabrier01_exponential_imf, chabrier03_lognormal_imf, chabrier05_lognormal_imf, kroupa_imf
 import numpy as np
 from astropy import units as apu
 from galpy import potential,orbit
@@ -81,40 +81,67 @@ def test_sample_mass_distribution_parameters():
     '''test_sample_mass_distribution_parameters
     
     Test that the distribution of masses is bounded according to supplied 
-    parameters
+    parameters for spherical and disk mocks
     '''
-    imf_types = ['chabrier','kroupa']
-    denspot = potential.HernquistPotential()
-    mock = APOGEEMock(denspot=denspot)
+    imf_types = ['chabrier01_lognormal', 'chabrier01_exponential',
+                 'chabrier03_lognormal', 'chabrier05_lognormal',
+                 'chabrier', 'kroupa']
+    denspot_spher = potential.HernquistPotential()
+    mock_spher = APOGEEMockSpherical(denspot=denspot_spher)
+    denspot_disk = potential.DoubleExponentialDiskPotential()
+    mock_disk = APOGEEMockDisk(denspot=denspot_disk)
     
     m_mins = [0.1,0.2]
     m_maxs = [0.8,0.9]
     m_tots = [1e3,1e4]
     for imf in imf_types:
         for m_min,m_max,m_tot in zip(m_mins,m_maxs,m_tots):
-                mock.sample_masses(m_tot, imf_type=imf, m_min=m_min,
-                                   m_max=m_max, force_resample=True)
-                ms = mock.masses
-                assert np.min(ms) > m_min, 'Masses sampled below m_min'
-                assert np.max(ms) < m_max, 'Masses sampled above m_max'
+                mock_spher.sample_masses(m_tot, imf_type=imf, m_min=m_min,
+                                         m_max=m_max, force_resample=True)
+                ms = mock_spher.masses
+                assert np.min(ms) > m_min,\
+                    'Masses sampled below m_min for spherical mock'
+                assert np.max(ms) < m_max,\
+                    'Masses sampled above m_max for spherical mock'
                 assert np.fabs(np.sum(ms)-m_tot) < m_max,\
-                    'Total mass sampled does not match m_tot'
+                    'Total mass sampled does not match m_tot for spherical mock'
+                
+                mock_disk.sample_masses(m_tot, imf_type=imf, m_min=m_min,
+                                        m_max=m_max, force_resample=True)
+                ms = mock_disk.masses
+                assert np.min(ms) > m_min,\
+                    'Masses sampled below m_min for disk mock'
+                assert np.max(ms) < m_max,\
+                    'Masses sampled above m_max for disk mock'
+                assert np.fabs(np.sum(ms)-m_tot) < m_max,\
+                    'Total mass sampled does not match m_tot for disk mock'
     
     m_mins = [0.1*apu.Msun,200.*apu.Mjup]
     m_maxs = [800.*apu.Mjup,0.9*apu.Msun]
     m_tots = [1e3*apu.Msun,1e7*apu.Mjup]
     for imf in imf_types:
         for m_min,m_max,m_tot in zip(m_mins,m_maxs,m_tots):
-                mock.sample_masses(m_tot, imf_type=imf, m_min=m_min,
-                                   m_max=m_max, force_resample=True)
-                ms = mock.masses
+                mock_spher.sample_masses(m_tot, imf_type=imf, m_min=m_min,
+                                         m_max=m_max, force_resample=True)
+                ms = mock_spher.masses
                 assert np.min(ms) > m_min.to(apu.Msun).value,\
-                    'Masses sampled below m_min when astropy used'
+                    'Masses sampled below m_min when astropy used for spherical mock'
                 assert np.max(ms) < m_max.to(apu.Msun).value,\
-                    'Masses sampled above m_max when astropy used'
+                    'Masses sampled above m_max when astropy used for spherical mock'
                 m_tot_diff = np.fabs(np.sum(ms)-m_tot.to(apu.Msun).value)
                 assert m_tot_diff < m_max.to(apu.Msun).value,\
-                    'Total mass sampled does not match m_tot when astropy used'
+                    'Total mass sampled does not match m_tot when astropy used for spherical mock'
+                
+                mock_disk.sample_masses(m_tot, imf_type=imf, m_min=m_min,
+                                        m_max=m_max, force_resample=True)
+                ms = mock_disk.masses
+                assert np.min(ms) > m_min.to(apu.Msun).value,\
+                    'Masses sampled below m_min when astropy used for disk mock'
+                assert np.max(ms) < m_max.to(apu.Msun).value,\
+                    'Masses sampled above m_max when astropy used for disk mock'
+                m_tot_diff = np.fabs(np.sum(ms)-m_tot.to(apu.Msun).value)
+                assert m_tot_diff < m_max.to(apu.Msun).value,\
+                    'Total mass sampled does not match m_tot when astropy used for disk mock'
                 
         
 def test_sample_mass_distribution_matches_IMF():
