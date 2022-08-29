@@ -1,15 +1,15 @@
 # ----------------------------------------------------------------------------
 #
-# TITLE - APOGEEMock.py
+# TITLE - test_apogee_mock.py
 # AUTHOR - James Lane
 #
 # ----------------------------------------------------------------------------
 
-'''APOGEEMock class tests'''
+'''APOGEEMock* class tests'''
 
 ### Imports
-from apomock import APOGEEMock
-from apomock.util.util import chabrier_imf,kroupa_imf
+from apomock import APOGEEMockSpherical,APOGEEMockDisk
+from apomock.util.util import chabrier03_lognormal_imf,kroupa_imf
 import numpy as np
 from astropy import units as apu
 from galpy import potential,orbit
