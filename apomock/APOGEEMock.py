@@ -835,10 +835,14 @@ class _APOGEEMock:
         summary.append('')
         
         # Position sampling
-        summary.append('mass sampling:')
-        mass_sampling_attrs = ['_r_min','_r_max','_scale','_b','_c','_zvec',
-            '_pa','_alpha','_beta','_gamme']
-        for attr in mass_sampling_attrs:
+        summary.append('position sampling:')
+        if self.isSpherical:            
+            pos_sampling_attrs = ['_r_min','_r_max','_scale','_b','_c','_zvec',
+                '_pa','_alpha','_beta','_gamme']
+        if self.isDisk:
+            pos_sampling_attrs = ['_R_min','_R_max','_z_min','_z_max',
+                                  '_scale_R','_scale_z','_Rz_separate']
+        for attr in pos_sampling_attrs:
             if hasattr(self,attr):
                 summary.append(attr+' : '+str(getattr(self,attr)))
         summary.append('')
