@@ -844,8 +844,80 @@ class _APOGEEMock:
         summary.append('class : '+str(self._dmap_class_name))
         
         return summary
-                
-
+    
+    
+    def get_orbs(self):
+        '''get_orbs:
+        
+        Return orbits if sampled
+        
+        Args:
+            None
+        
+        Returns:
+            orbs (galpy.orbit.Orbit) - Mock sample orbits
+        '''
+        if hasattr(self,'orbs'):
+            return self.orbs
+        else:
+            warnings.warn('Orbits not yet sampled, returning None')
+            return None
+    
+    
+    def get_masses(self):
+        '''get_masses:
+        
+        Return masses if sampled
+        
+        Args:
+            None
+        
+        Return:
+            masses (np.array) - Mock sample masses
+        '''
+        if hasattr(self,'masses'):
+            return self.masses
+        else:
+            warnings.warn('Masses not yet sampled, returning None')
+            return None
+    
+    def get_locids(self):
+        '''get_locids:
+        
+        Return Location IDs if generated
+        
+        Args:
+            None
+        
+        Return:
+            locid (np.array) - Mock Location IDs
+        '''
+        if hasattr(self,'locids'):
+            return self.locids
+        else:
+            warnings.warn('Location IDs not yet sampled, returning None')
+            return None
+    
+    def get_iso_property(self,key):
+        '''get_iso_property:
+        
+        Return an isochrone property for mock samples according to a key
+        
+        Args:
+            key (string) - Isochrone key
+        
+        Return:
+            locid (np.array) - Mock Location IDs
+        '''
+        assert isinstance(key,str) and hasattr(self,'iso') and \
+            key in self.iso.dtype.names,\
+            'key must be string and valid key of loaded mock isochrone'
+        if hasattr(self,'iso_match_indx'):
+            return self.iso[key][self.iso_match_indx]
+        else:
+            warnings.warn('Isochrone match index not defined, returning None')
+            return None
+        
 class APOGEEMockSpherical(_APOGEEMock):
     '''APOGEEMockSpherical:
     
