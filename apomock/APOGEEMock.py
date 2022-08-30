@@ -97,6 +97,10 @@ class _APOGEEMock:
         else: # Assume km/s
             self._vo = vo
         
+        # Will be set by child classes
+        self.isSpherical = False
+        self.isDisk = False
+        
         return None
     #def
     
@@ -944,6 +948,7 @@ class APOGEEMockSpherical(_APOGEEMock):
             None
         ''' 
         super().__init__(denspot=denspot,ro=ro,vo=vo)
+        self.isSpherical=True
     
     def sample_positions(self,n=None,denspot=None,r_min=0.,r_max=np.inf,
                          scale=None,b=None,c=None,zvec=None,pa=None,alpha=None,
@@ -1296,14 +1301,15 @@ class APOGEEMockDisk(_APOGEEMock):
             'Not a valid APOGEEMockDisk potential'
         
         # Potentials for which R,z separate
-        _rz_separate_potentials = (potential.DoubleExponentialDiskPotential,
+        _Rz_separate_potentials = (potential.DoubleExponentialDiskPotential,
                                   )
-        if isinstance(denspot,_rz_separate_potentials):
-            self._rz_separate = True
+        if isinstance(denspot,_Rz_separate_potentials):
+            self._Rz_separate = True
         else:
-            self._rz_separate = False
+            self._Rz_separate = False
         
         super().__init__(denspot=denspot,ro=ro,vo=vo)
+        self.isDisk=True
     
     def sample_positions(self,n=None,denspot=None,R_min=0.,R_max=np.inf,
                          z_min=0.,z_max=np.inf,scale_R=None,scale_z=None,
