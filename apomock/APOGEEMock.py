@@ -1422,7 +1422,7 @@ class APOGEEMockDisk(_APOGEEMock):
         # Draw radial and angular samples
         #import pdb
         #pdb.set_trace()
-        if self._rz_separate: # Sampling for R,z is separate in the potential
+        if self._Rz_separate: # Sampling for R,z is separate in the potential
             if isinstance(denspot,potential.DoubleExponentialDiskPotential):
                 R_samples = self._sample_R_separate(
                     self._R_cf_double_exponential_disk,n,self._R_min,
